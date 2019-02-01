@@ -1,2 +1,0 @@
-# johnmav
-Personal Blog
