@@ -2,7 +2,7 @@
 layout: post
 title:  "Containers, Iterators, and Generators... Oh My!"
 date: 2020-03-02 21:12:00 +0800
-categories: python, iterable
+categories: python
 ---
 
 One thing that I often find myself having to refresh my memory on is the nuances between the several ways python provides objects and classes for you to loop through. I'm talking about containers, iterators, and generators. If you're like me and often find yourself trying to decide whether you should use `yield` or not hopefully this can help! 

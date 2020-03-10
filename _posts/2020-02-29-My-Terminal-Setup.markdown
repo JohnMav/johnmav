@@ -2,7 +2,7 @@
 layout: post
 title:  "My Terminal Setup"
 date: 2020-02-29 15:17:00 +0800
-categories: terminal, tech
+categories: terminal
 ---
 
 Most developers and engineers that I have met have dabbled in customizing their terminal and I've been caught between several, er, "spirited debates" on what customizations, plugins, tools, etc are better. This isn't my attempt to convince you that my specific set up is the best. If anything this is just to help me remember how I like to setup my terminal whenever I get a new laptop 😅. 
