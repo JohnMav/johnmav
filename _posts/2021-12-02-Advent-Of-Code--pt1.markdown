@@ -60,13 +60,13 @@ So to model out whether each step was an INCREASE or not from the last step we c
 
 ```sql
 SELECT
-    ROW_NUMBER() OVER () AS step,
-    depth,
-    CASE
-        WHEN depth - LAG(depth) OVER () > 0
-        THEN TRUE
-        ELSE FALSE
-    END AS increased
+  ROW_NUMBER() OVER () AS step,
+  depth,
+  CASE
+    WHEN depth - LAG(depth) OVER () > 0
+    THEN TRUE
+    ELSE FALSE
+  END AS increased
 FROM {{ ref('puzzle_1') }}
 ```
 
@@ -78,12 +78,13 @@ Finally to get our solution I added a new `.sql` file to our analysis directory 
 
 ```sql
 SELECT
-    COUNT(
-        CASE WHEN increased
-             THEN row_number
-             ELSE NULL
-        END
-    ) AS depth_increase_count
+  COUNT(
+    CASE 
+      WHEN increased
+      THEN step
+      ELSE NULL
+    END
+  ) AS depth_increase_count
 FROM {{ ref('puzzle_1_part_a') }}
 ```
 
@@ -91,12 +92,13 @@ Once we run `dbt compile` this converts our sql into a usable query that we coul
 
 ```sql
 SELECT
-    COUNT(
-        CASE WHEN increased
-             THEN row_number
-             ELSE NULL
-        END
-    ) AS depth_increase_count
+  COUNT(
+    CASE 
+      WHEN increased
+      THEN step
+      ELSE NULL
+    END
+  ) AS depth_increase_count
 FROM "postgres"."public"."puzzle_1_part_a"
 ```
 
@@ -105,63 +107,63 @@ For Part B we are doing a similar approach but doing the same operation across a
 
 ```sql
 WITH depth_groups AS (
-	SELECT 
-		ROW_NUMBER() OVER () AS group_number,
-		SUM(depth) OVER (ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING) AS depth_sum
-	FROM {{ ref('puzzle_1') }}
+  SELECT 
+    ROW_NUMBER() OVER () AS group_number,
+    SUM(depth) OVER (ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING) AS depth_sum
+  FROM {{ ref('puzzle_1') }}
 )
 
 SELECT
-	group_number,
-    depth_sum,
-    CASE
-        WHEN depth_sum - LAG(depth_sum) OVER () > 0
-        THEN TRUE
-        ELSE FALSE
-    END AS increased
+  group_number,
+  depth_sum,
+  CASE
+    WHEN depth_sum - LAG(depth_sum) OVER () > 0
+    THEN TRUE
+    ELSE FALSE
+  END AS increased
 FROM depth_groups
 ```
 
 So this works. But the section outside of the CTE is pretty similar to what we did in Part A. In an effort to not repeat ourselves and utilize some more features of both Jinja and dbt we can create a reusable macro. In the `macros/` directory lets create a `puzzle_1_compute_increases.sql` file that looks like 
 
-```sql
 {% raw %}
+```sql
 {% macro compute_increases(table_name, column_name) %}
-SELECT
+  SELECT
     ROW_NUMBER() OVER () AS step,
     {{ column_name }},
     CASE
-        WHEN {{ column_name }} - LAG({{ column_name }}) OVER () > 0
-        THEN TRUE
-        ELSE FALSE
+      WHEN {{ column_name }} - LAG({{ column_name }}) OVER () > 0
+      THEN TRUE
+      ELSE FALSE
     END AS increased
-FROM {{ table_name }}
+  FROM {{ table_name }}
 {% endmacro %}
-{% endraw %}
 ```
+{% endraw %}
 
 Simply our macro will take a table name and column name and perform the operations needed to compute whether a new depth is an increase over the last depth. 
 
 Now our solution to part A simply becomes:
 
-```sql
 {% raw %}
+```sql
 {{ compute_increases(ref('puzzle_1'), 'depth') }}
-{% endraw %}
 ```
+{% endraw %}
 
 and Part B becomes:
 
-```sql
 {% raw %}
+```sql
 WITH depth_groups AS (
-	SELECT 
-		SUM(depth) OVER (ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING) AS depth_sum
-	FROM {{ ref('puzzle_1') }}
+  SELECT 
+    SUM(depth) OVER (ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING) AS depth_sum
+  FROM {{ ref('puzzle_1') }}
 )
 
 {{ compute_increases('depth_groups', 'depth_sum') }}
-{% endraw %}
 ```
+{% endraw %}
 
 Entirely too much for this simple problem? Probably! Could we name things better, always. But you can imagine as things get more complicated these reusable components of sql code can be quite handy to have in our toolbox.
