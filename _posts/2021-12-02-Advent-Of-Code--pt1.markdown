@@ -125,6 +125,7 @@ FROM depth_groups
 So this works. But the section outside of the CTE is pretty similar to what we did in Part A. In an effort to not repeat ourselves and utilize some more features of both Jinja and dbt we can create a reusable macro. In the `macros/` directory lets create a `puzzle_1_compute_increases.sql` file that looks like 
 
 ```sql
+{% raw %}
 {% macro compute_increases(table_name, column_name) %}
 SELECT
     ROW_NUMBER() OVER () AS step,
@@ -136,6 +137,7 @@ SELECT
     END AS increased
 FROM {{ table_name }}
 {% endmacro %}
+{% endraw %}
 ```
 
 Simply our macro will take a table name and column name and perform the operations needed to compute whether a new depth is an increase over the last depth. 
@@ -143,12 +145,15 @@ Simply our macro will take a table name and column name and perform the operatio
 Now our solution to part A simply becomes:
 
 ```sql
+{% raw %}
 {{ compute_increases(ref('puzzle_1'), 'depth') }}
+{% endraw %}
 ```
 
 and Part B becomes:
 
 ```sql
+{% raw %}
 WITH depth_groups AS (
 	SELECT 
 		SUM(depth) OVER (ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING) AS depth_sum
@@ -156,6 +161,7 @@ WITH depth_groups AS (
 )
 
 {{ compute_increases('depth_groups', 'depth_sum') }}
+{% endraw %}
 ```
 
 Entirely too much for this simple problem? Probably! Could we name things better, always. But you can imagine as things get more complicated these reusable components of sql code can be quite handy to have in our toolbox.
