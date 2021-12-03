@@ -57,7 +57,7 @@ We can now run `dbt seed` in our terminal and voilá! Our puzzle input data is r
 Part A of Day 1's puzzle boiled down to map-reduce type puzzle where the mapping is simply looking at if the prior steps measurements was smaller or larger than the current step.
 
 So to model out whether each step was an INCREASE or not from the last step we can create a query in our `models/` directory which I called `models/puzzle_1/puzzle_1_part_a.sql`
-
+{% raw %}
 ```sql
 SELECT
   ROW_NUMBER() OVER () AS step,
@@ -69,13 +69,13 @@ SELECT
   END AS increased
 FROM {{ ref('puzzle_1') }}
 ```
-
-A pretty simple query, for each step in our depth we check if the prior step was smaller, if so then we have an increase! The dbt magic is mostly in the `{{ ref('puzzle_1') }}` which simply just uses the reference to our seeded table. 
+{% endraw %}
+A pretty simple query, for each step in our depth we check if the prior step was smaller, if so then we have an increase! The dbt magic is mostly in the {% raw %}`{{ ref('puzzle_1') }}`{% endraw %} which simply just uses the reference to our seeded table. 
 
 Once we have that created in our models we can run `dbt run` and we end up with a pretty simple table that indicates the step, the current depth, and whether or not we increased in depth. 
 
 Finally to get our solution I added a new `.sql` file to our analysis directory `analysis/puzzle_1_part_a.sql`
-
+{% raw %}
 ```sql
 SELECT
   COUNT(
@@ -87,7 +87,7 @@ SELECT
   ) AS depth_increase_count
 FROM {{ ref('puzzle_1_part_a') }}
 ```
-
+{% endraw %}
 Once we run `dbt compile` this converts our sql into a usable query that we could potentially use in a dashboarding tool, notebook, sql editor whatever. Our compiled sql looks like 
 
 ```sql
@@ -104,7 +104,7 @@ FROM "postgres"."public"."puzzle_1_part_a"
 
 ## Puzzle 1 Part B
 For Part B we are doing a similar approach but doing the same operation across a sliding window. We can simply create depth groups using a CTE and then use roughly the same query as we used in part A on the depth groups. 
-
+{% raw %}
 ```sql
 WITH depth_groups AS (
   SELECT 
@@ -123,7 +123,7 @@ SELECT
   END AS increased
 FROM depth_groups
 ```
-
+{% endraw %}
 So this works. But the section outside of the CTE is pretty similar to what we did in Part A. In an effort to not repeat ourselves and utilize some more features of both Jinja and dbt we can create a reusable macro. In the `macros/` directory lets create a `puzzle_1_compute_increases.sql` file that looks like 
 
 {% raw %}
